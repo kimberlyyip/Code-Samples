@@ -1,0 +1,458 @@
+// From the cache.js file of the Carleton College Geode Project
+
+function cacheInput(name, value) {
+    localStorage.setItem(name, value);
+}
+
+function updateTempProfileForm() {
+    // Update the temperature profile form
+
+    let cachedValue = localStorage.getItem("tempProfileBoreholeNumber");
+    if (cachedValue != null) {
+        let borehole = document.getElementById("id_tempProfileBoreholeNumber");
+        borehole.value = cachedValue;
+    }
+
+    // uncomment below to implement timezone conversion
+    // cachedValue = localStorage.getItem("tempProfileTimezone");
+    // if (cachedValue != null) {
+    //     let timezone = document.getElementById(
+    //         "id_tempProfileTimezone"
+    //     );
+    //     timezone.value = cachedValue;
+    // }
+
+    cachedValue = localStorage.getItem("temperatureProfileDateRange");
+    if (cachedValue != null) {
+        let dateRange = document.getElementById(
+            "id_temperatureProfileDateRange"
+        );
+        dateRange.value = cachedValue;
+    }
+
+    cachedValue = localStorage.getItem("temperatureProfileTimeSelector");
+    if (cachedValue != null) {
+        let time = document.getElementById("id_temperatureProfileTimeSelector");
+        time.value = cachedValue;
+    }
+}
+
+function updateTempVsTimeForm() {
+    // Update the temperature vs time form
+
+    let cachedValue = localStorage.getItem("tempVsTimeBoreholeNumber");
+    if (cachedValue != null) {
+        let borehole = document.getElementById("id_tempVsTimeBoreholeNumber");
+        borehole.value = cachedValue;
+    }
+
+    // uncomment below to implement timezone conversion
+    // cachedValue = localStorage.getItem("tempVsTimeTimezone");
+    // if (cachedValue != null) {
+    //     let timezone = document.getElementById("id_tempVsTimeTimezone");
+    //     timezone.value = cachedValue;
+    // }
+
+    cachedValue = localStorage.getItem("tempVsTimeDateRange");
+    if (cachedValue != null) {
+        let dateRange = document.getElementById("id_tempVsTimeDateRange");
+        dateRange.value = cachedValue;
+    }
+
+    cachedValue = localStorage.getItem("tempVsTimeDepth");
+    if (cachedValue != null) {
+        let depth = document.getElementById("id_tempVsTimeDepth");
+        depth.value = cachedValue;
+    }
+}
+
+function updateXtviewerForm() {
+    // Update the xtviewer form
+
+    let cachedValue = localStorage.getItem("xtviewerChannelName");
+    if (cachedValue != null) {
+        let channel = document.getElementById("id_xtviewerChannelName");
+        channel.value = cachedValue;
+    }
+
+    cachedValue = localStorage.getItem("xtviewerTopology");
+    if (cachedValue != null) {
+        let topology = document.getElementById("id_xtviewerTopology");
+        topology.value = cachedValue;
+    }
+
+    // uncomment below to implement timezone conversion
+    // cachedValue = localStorage.getItem("xtviewerTimezone");
+    // if (cachedValue != null) {
+    //     let timezone = document.getElementById(
+    //         "id_xtviewerTimezone"
+    //     );
+    //     timezone.value = cachedValue;
+    // }
+
+    cachedValue = localStorage.getItem("xtviewerDateRange");
+    if (cachedValue != null) {
+        let dateRange = document.getElementById(
+            "id_xtviewerDateRange"
+        );
+        dateRange.value = cachedValue;
+    }
+
+    cachedValue = localStorage.getItem("xtviewerTimeSelector");
+    if (cachedValue != null) {
+        let time = document.getElementById("id_xtviewerTimeSelector");
+        time.value = cachedValue;
+    }
+}
+
+function displayOutageWarnings(boreholeInput) {
+    // OUTAGE WARNINGS FOR TEMPERATUREPROFILE
+    var fieldValue = $("#id_temperatureProfileDateRange")[0].value;
+    var [startStr, endStr] = fieldValue.split(" - ");
+
+    let errorChecking = containsOutage(boreholeInput, fieldValue);
+    
+    if (errorChecking[0]) {
+        if (errorChecking[1] && errorChecking[2]) {
+            // the date range is within the outage 
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The date range you selected is an invalid date range since it occurs within the outage. "+
+                "<br/> "+
+                "The start date "+startStr+" occurs on/after the start date of the outage "+errorChecking[3]+". "+
+                "The end date "+endStr+" occurs on/before the end date of the outage "+errorChecking[4]+". "+
+                "This will result in no data to be displayed. "+
+                "<br/> "+
+                "Try selecting a new date range after consulting the Data Outages section on the "+
+                "<a class="+'"link" href='+"'documentation' target='_blank'"+"><u>Documentation page</u></a>"+
+                " to learn more about data outages and what dates are unavailable.";
+        } else if (errorChecking[1]){
+            // the startDate is within the outage, the endDate is a valid date
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The date range you selected overlaps with an outage, which will result in partial data to be displayed. "+
+                "<br/> "+
+                "The start date "+startStr+" occurs on/before the end date of the outage "+errorChecking[4]+". "+
+                "The end date "+endStr+" does not overlap or coincide with an outage. "+
+                "<br/> "+
+                "Consult the Data Outages section on the "+
+                "<a class="+'"link" href='+"'documentation' target='_blank'"+"><u>Documentation page</u></a>"+
+                " to learn more about data outages and what dates are unavailable.";
+        } else if (errorChecking[2]){
+            // the endDate is within the outage, the startDate is a valid date
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The date range you selected overlaps with an outage, which will result in partial data to be displayed. "+
+                "<br/> "+
+                "The start date "+startStr+" does not overlap or coincide with an outage. "+
+                "The end date "+endStr+" occurs on/after the start date of the outage "+errorChecking[3]+". "+
+                "<br/> "+
+                "Consult the Data Outages section on the "+
+                "<a class="+'"link" href='+"'documentation' target='_blank'"+"><u>Documentation page</u></a>"+
+                " to learn more about data outages and what dates are unavailable.";
+        } else {
+            // the date range encapsulates an outage
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The date range you selected contains an outage, which will result in partial data to be displayed. "+
+                "<br/> "+
+                "The start date "+startStr+" is a date that does not overlap or coincide with an outage. "+
+                "The end date "+endStr+" is a date that does not overlap or coincide with an outage. "+
+                "<br/> "+
+                "Consult the Data Outages section on the "+
+                "<a class="+'"link" href='+"'documentation' target='_blank'"+"><u>Documentation page</u></a>"+
+                " to learn more about data outages and what dates are unavailable.";
+        }
+
+        if(errorChecking[5]){
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The start date entered "+startStr+" occurs before the start date of all available data "+dataStartDate+
+                ". Try selecting a new date range where the start date occurs after "+dataStartDate;
+        } else if(errorChecking[6]){
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The start date entered "+startStr+" occurs after the end date of all available data "+dataEndDate+
+                ". Try selecting a new date range where the start date occurs before "+dataEndDate;
+        } else if(errorChecking[7]){
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The end date entered "+endStr+" occurs before the start date of all available data "+dataStartDate+
+                ". Try selecting a new date range where the end date occurs after "+dataStartDate;
+        } else if(errorChecking[8]){
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The end date entered "+endStr+" occurs after the end date of all available data "+dataEndDate+
+                ". Try selecting a new date range where the end date occurs before "+dataEndDate;
+        } else if(errorChecking[9]){
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The end date entered "+endStr+" occurs before the start date entered "+startStr+
+                ". Try selecting a new date range where the end date occurs after the start date.";
+        }
+        $("#temperatureProfile_warning")[0].style.display = "block";
+    } else {
+        if(errorChecking[5]){
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The start date entered "+startStr+" occurs before the start date of all available data "+dataStartDate+
+                ". Try selecting a new date range where the start date occurs after "+dataStartDate;
+            $("#temperatureProfile_warning")[0].style.display = "block";
+        } else if(errorChecking[6]){
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The start date entered "+startStr+" occurs after the end date of all available data "+dataEndDate+
+                ". Try selecting a new date range where the start date occurs before "+dataEndDate;
+            $("#temperatureProfile_warning")[0].style.display = "block";
+        } else if(errorChecking[7]){
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The end date entered "+endStr+" occurs before the start date of all available data "+dataStartDate+
+                ". Try selecting a new date range where the end date occurs after "+dataStartDate;
+            $("#temperatureProfile_warning")[0].style.display = "block";
+        } else if(errorChecking[8]){
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The end date entered "+endStr+" occurs after the end date of all available data "+dataEndDate+
+                ". Try selecting a new date range where the end date occurs before "+dataEndDate;
+            $("#temperatureProfile_warning")[0].style.display = "block";
+        } else if(errorChecking[9]){
+            document.getElementById("temperatureProfile_warning").innerHTML 
+                = "The end date entered "+endStr+" occurs before the start date entered "+startStr+
+                ". Try selecting a new date range where the end date occurs after the start date.";
+            $("#temperatureProfile_warning")[0].style.display = "block";
+        } else {
+            $("#temperatureProfile_warning")[0].style.display = "none";
+        }
+    }
+
+    // OUTAGE WARNINGS FOR TEMPVSTIME
+    fieldValue = $("#id_tempVsTimeDateRange")[0].value;
+    [startStr, endStr] = fieldValue.split(" - ");
+
+    errorChecking = containsOutage(boreholeInput, fieldValue);
+
+    if (errorChecking[0]) {
+        if (errorChecking[1] && errorChecking[2]) {
+            // the date range is within the outage 
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The date range you selected is an invalid date range since it occurs within the outage. "+
+                "<br/> "+
+                "The start date "+startStr+" occurs on/after the start date of the outage "+errorChecking[3]+". "+
+                "The end date "+endStr+" occurs on/before the end date of the outage "+errorChecking[4]+". "+
+                "This will result in no data to be displayed. "+
+                "<br/> "+
+                "Try selecting a new date range after consulting the Data Outages section on the "+
+                "<a class="+'"link" href='+"'documentation' target='_blank'"+"><u>Documentation page</u></a>"+
+                " to learn more about data outages and what dates are unavailable.";
+        } else if (errorChecking[1]){
+            // the startDate is within the outage, the endDate is a valid date
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The date range you selected overlaps with an outage, which will result in partial data to be displayed. "+
+                "<br/> "+
+                "The start date "+startStr+" occurs on/before the end date of the outage "+errorChecking[4]+". "+
+                "The end date "+endStr+" does not overlap or coincide with an outage. "+
+                "Available data is shown in red. Outages are represented as a black line that connects the last two available data points. "+
+                "<br/> "+
+                "Consult the Data Outages section on the "+
+                "<a class="+'"link" href='+"'documentation' target='_blank'"+"><u>Documentation page</u></a>"+
+                " to learn more about data outages and what dates are unavailable.";
+        } else if (errorChecking[2]){
+            // the endDate is within the outage, the startDate is a valid date
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The date range you selected overlaps with an outage, which will result in partial data to be displayed. "+
+                "<br/> "+
+                "The start date "+startStr+" does not overlap or coincide with an outage. "+
+                "The end date "+endStr+" occurs on/after the start date of the outage "+errorChecking[3]+". "+
+                "Available data is shown in red. Outages are represented as a black line that connects the last two available data points. "+
+                "<br/> "+
+                "Consult the Data Outages section on the "+
+                "<a class="+'"link" href='+"'documentation' target='_blank'"+"><u>Documentation page</u></a>"+
+                " to learn more about data outages and what dates are unavailable.";
+        } else {
+            // the date range encapsulates an outage
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The date range you selected contains an outage, which will result in partial data to be displayed. "+
+                "<br/> "+
+                "The start date "+startStr+" is a date that does not overlap or coincide with an outage. "+
+                "The end date "+endStr+" is a date that does not overlap or coincide with an outage. "+
+                "Available data is shown in red. Outages are represented as a black line that connects the last two available data points. "+
+                "<br/> "+
+                "Consult the Data Outages section on the "+
+                "<a class="+'"link" href='+"'documentation' target='_blank'"+"><u>Documentation page</u></a>"+
+                " to learn more about data outages and what dates are unavailable.";
+        }
+
+        if(errorChecking[5]){
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The start date entered "+startStr+" occurs before the start date of all available data "+dataStartDate+
+                ". Try selecting a new date range where the start date occurs after "+dataStartDate;
+        } else if(errorChecking[6]){
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The start date entered "+startStr+" occurs after the end date of all available data "+dataEndDate+
+                ". Try selecting a new date range where the start date occurs before "+dataEndDate;
+        } else if(errorChecking[7]){
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The end date entered "+endStr+" occurs before the start date of all available data "+dataStartDate+
+                ". Try selecting a new date range where the end date occurs after "+dataStartDate;
+        } else if(errorChecking[8]){
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The end date entered "+endStr+" occurs after the end date of all available data "+dataEndDate+
+                ". Try selecting a new date range where the end date occurs before "+dataEndDate;
+        } else if(errorChecking[9]){
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The end date entered "+endStr+" occurs before the start date entered "+startStr+
+                ". Try selecting a new date range where the end date occurs after the start date.";
+        }
+        $("#tempVsTime_warning")[0].style.display = "block";
+    } else {
+        if(errorChecking[5]){
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The start date entered "+startStr+" occurs before the start date of all available data "+dataStartDate+
+                ". Try selecting a new date range where the start date occurs after "+dataStartDate;
+            $("#tempVsTime_warning")[0].style.display = "block";
+        } else if(errorChecking[6]){
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The start date entered "+startStr+" occurs after the end date of all available data "+dataEndDate+
+                ". Try selecting a new date range where the start date occurs before "+dataEndDate;
+            $("#tempVsTime_warning")[0].style.display = "block";
+        } else if(errorChecking[7]){
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The end date entered "+endStr+" occurs before the start date of all available data "+dataStartDate+
+                ". Try selecting a new date range where the end date occurs after "+dataStartDate;
+            $("#tempVsTime_warning")[0].style.display = "block";
+        } else if(errorChecking[8]){
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The end date entered "+endStr+" occurs after the end date of all available data "+dataEndDate+
+                ". Try selecting a new date range where the end date occurs before "+dataEndDate;
+            $("#tempVsTime_warning")[0].style.display = "block";
+        } else if(errorChecking[9]){
+            document.getElementById("tempVsTime_warning").innerHTML 
+                = "The end date entered "+endStr+" occurs before the start date entered "+startStr+
+                ". Try selecting a new date range where the end date occurs after the start date.";
+            $("#tempVsTime_warning")[0].style.display = "block";
+        } else {
+            $("#tempVsTime_warning")[0].style.display = "none";
+        }
+    }
+
+    // OUTAGE WARNINGS FOR XTVIEWER
+    fieldValue = $("#id_xtviewerDateRange")[0].value;
+    channelValue = $("#id_xtviewerChannelName")[0].value;
+    // [startStr, endStr] = fieldValue.split(" - ");
+
+    errorChecking = containsOutageXtviewer(channelValue, fieldValue);
+
+    if(errorChecking[4]){
+        document.getElementById("xtviewer_warning").innerHTML 
+            = "The date entered "+fieldValue+" occurs before the start date of all available data "+dataStartDate+
+            ". Try selecting a new date range where the start date occurs after "+dataStartDate;
+        $("#xtviewer_warning")[0].style.display = "block";
+    } else if(errorChecking[5]){
+        document.getElementById("xtviewer_warning").innerHTML 
+            = "The date entered "+fieldValue+" occurs after the end date of all available data "+dataEndDate+
+            ". Try selecting a new date range where the start date occurs before "+dataEndDate;
+        $("#xtviewer_warning")[0].style.display = "block";
+    } else if (errorChecking[0]) {
+        document.getElementById("xtviewer_warning").innerHTML 
+            = "The date you selected occurs on/within an outage, which will result in no data to be displayed. "+
+            "<br/> "+
+            "The date "+fieldValue+" occurs on/between the dates of the outage "+errorChecking[1]+" & "+errorChecking[2]+". "+
+            "<br/> "+
+            "Consult the Data Outages section on the "+
+            "<a class="+'"link" href='+"'documentation' target='_blank'"+"><u>Documentation page</u></a>"+
+            " to learn more about data outages and what dates are unavailable.";
+        $("#xtviewer_warning")[0].style.display = "block";
+    } else {
+        $("#xtviewer_warning")[0].style.display = "none";
+    }
+}
+
+function sameDay(){
+    var fieldValue = $("#id_temperatureProfileDateRange")[0].value;
+    var [startStr, endStr] = fieldValue.split(" - ");
+
+    if (startStr == endStr){
+        document.getElementById("id_temperatureProfileDateRange").nextElementSibling.textContent = "";
+        document.getElementById("id_temperatureProfileTimeSelector").style.display = "none";
+        document.getElementById("id_temperatureProfileTimeSelector").value = "00:00";
+    } else {
+        // replace below code to implement timezone conversion
+        // document.getElementById("id_temperatureProfileDateRange").nextElementSibling.textContent = "Time of Day HH:MM ("
+        // +document.getElementById("id_tempProfileTimezone").value+") 24HR";
+        document.getElementById("id_temperatureProfileDateRange").nextElementSibling.textContent = "Time of Day HH:MM (UTC) 24HR";
+        document.getElementById("id_temperatureProfileTimeSelector").style.display = "block";
+        document.getElementById("id_temperatureProfileTimeSelector").placeholder = "HH:MM";
+    }
+}
+
+function typeOutput(){
+    var ms_Min = 60 * 1000; // milliseconds in Minute 
+    var ms_Hour = ms_Min * 60; // milliseconds in Hour 
+    var ms_Day = ms_Hour * 24; // milliseconds in day 
+    var ms_Week = ms_Day * 7; //milliseconds in week  
+
+    var fieldValue = $("#id_temperatureProfileDateRange")[0].value;
+    var [startStr, endStr] = fieldValue.split(" - ");
+    var startDate = new Date(startStr);
+    var endDate = new Date(endStr);
+    var difference = endDate - startDate;
+    
+    // Replace with code below to implement timezone conversion
+    // begin replace
+    // if (difference < ms_Day){
+    //     document.getElementById("id_tempProfileTimezone").nextElementSibling.textContent = "Date range (YYYY-MM-DD - YYYY-MM-DD) ("
+    //         +document.getElementById("id_tempProfileTimezone").value+") Mode: Hours";
+    // } else if (difference <= (ms_Day * 15)){
+    //     document.getElementById("id_tempProfileTimezone").nextElementSibling.textContent = "Date range (YYYY-MM-DD - YYYY-MM-DD) ("
+    //         +document.getElementById("id_tempProfileTimezone").value+") Mode: Days";
+    // } else if (difference <= (ms_Week * 15)){
+    //     document.getElementById("id_tempProfileTimezone").nextElementSibling.textContent = "Date range (YYYY-MM-DD - YYYY-MM-DD) ("
+    //         +document.getElementById("id_tempProfileTimezone").value+") Mode: Weeks";
+    // } else if (difference <= (ms_Day * 450)){
+    //     document.getElementById("id_tempProfileTimezone").nextElementSibling.textContent = "Date range (YYYY-MM-DD - YYYY-MM-DD) ("
+    //         +document.getElementById("id_tempProfileTimezone").value+") Mode: Months";
+    // } else if (difference > (ms_Day * 450)){
+    //     document.getElementById("id_tempProfileTimezone").nextElementSibling.textContent = "Date range (YYYY-MM-DD - YYYY-MM-DD) ("
+    //         +document.getElementById("id_tempProfileTimezone").value+") Mode: Years";
+    // }
+
+    // document.getElementById("id_tempVsTimeTimezone").nextElementSibling.textContent = "Date range (YYYY-MM-DD - YYYY-MM-DD) ("
+    //     +document.getElementById("id_tempVsTimeTimezone").value+")";
+    // end replace
+
+    // begin replace
+    if (difference < ms_Day){
+        document.getElementById("id_tempProfileBoreholeNumber").nextElementSibling.textContent = "Date range (YYYY-MM-DD - YYYY-MM-DD) (UTC) Mode: Hours";
+    } else if (difference <= (ms_Day * 15)){
+        document.getElementById("id_tempProfileBoreholeNumber").nextElementSibling.textContent = "Date range (YYYY-MM-DD - YYYY-MM-DD) (UTC) Mode: Days";
+    } else if (difference <= (ms_Week * 15)){
+        document.getElementById("id_tempProfileBoreholeNumber").nextElementSibling.textContent = "Date range (YYYY-MM-DD - YYYY-MM-DD) (UTC) Mode: Weeks";
+    } else if (difference <= (ms_Day * 450)){
+        document.getElementById("id_tempProfileBoreholeNumber").nextElementSibling.textContent = "Date range (YYYY-MM-DD - YYYY-MM-DD) (UTC) Mode: Months";
+    } else if (difference > (ms_Day * 450)){
+        document.getElementById("id_tempProfileBoreholeNumber").nextElementSibling.textContent = "Date range (YYYY-MM-DD - YYYY-MM-DD) (UTC) Mode: Years";
+    }
+    // end replace
+}
+
+function restoreTab() {
+    var tab = localStorage.getItem("tab");
+    if (tab == "tempvstime") {
+        document.getElementById("tempvstime-button").click();
+    } else if (tab == "xtviewer") {
+        document.getElementById("xtviewer-button").click();
+    }
+}
+
+window.onload = function () {
+    restoreTab();
+    updateTempProfileForm();
+    updateTempVsTimeForm();
+    updateXtviewerForm();
+    // Display warnings and errors when page has been reloaded
+    typeOutput();
+    displayOutageWarnings(document.getElementById("id_tempProfileBoreholeNumber"));
+    displayOutageWarnings(document.getElementById("id_tempVsTimeBoreholeNumber"));
+    displayOutageWarnings(document.getElementById("id_xtviewerChannelName"));
+    sameDay();
+};
+
+// Prevent carriage return to act as submit
+$(document).keypress(function (e) {
+    if (e.which == 13 && e.target.nodeName != "TEXTAREA") {
+        event.preventDefault();
+        return false;
+    }
+});
+
+function clearCache() {
+    localStorage.clear();
+}
